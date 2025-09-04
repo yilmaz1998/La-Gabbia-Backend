@@ -7,7 +7,7 @@ exports.up = function(knex) {
         table.increments("id").primary();
         table.string("customer_name").notNullable();
         table.string("customer_address").notNullable();
-        table.string("customer_phone").notNullable();
+        table.string("customer_email").notNullable();
         table.decimal("total_price", 10, 2).notNullable().defaultTo(0);
         table.string("status").notNullable().defaultTo("pending");
         table.timestamps(true, true);
