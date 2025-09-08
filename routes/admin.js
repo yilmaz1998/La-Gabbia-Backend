@@ -22,4 +22,43 @@ router.get("/orders", adminAuth, async (req, res) => {
   }
 });
 
+router.patch("/orders/:id/status", adminAuth, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const order = await knex("orders").where({ id }).first();
+        if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+        }
+        
+        const statusSequence = ["pending", "preparing", "out for delivery"];
+        const currentStatusIndex = statusSequence.indexOf(order.status);
+
+        if (currentStatusIndex === -1 || currentStatusIndex === statusSequence.length - 1) {
+        return res.status(400).json({ error: "Order is already delivered or has invalid status"});
+        }
+
+        const newStatus = statusSequence[currentStatusIndex + 1];
+
+        await knex("orders").where({ id }).update({ status: newStatus, updated_at: knex.fn.now() });
+
+        res.json({ message: `Order ${id} status updated to ${newStatus}`, orderId: id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to update order status" });
+    }
+});
+
+router.delete("/orders/:id", adminAuth, async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      await knex("orders").where({ id }).del();
+      res.json({ message: `Order ${id} deleted successfully` });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to delete order" });
+    }
+  });
+  
+
 module.exports = router;
