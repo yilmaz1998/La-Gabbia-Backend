@@ -27,6 +27,7 @@ router.post("/", async (req, res) => {
       menu_item_id: item.menu_item_id,
       quantity: item.quantity,
       price: item.price,
+      introduction: item.introduction || null,
     }));
 
     await knex("order_items").insert(orderItems);
