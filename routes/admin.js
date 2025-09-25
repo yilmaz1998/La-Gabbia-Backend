@@ -2,6 +2,27 @@ const express = require("express");
 const knex = require('../knex.js');
 const router = express.Router();
 const adminAuth = require("../middleware/adminAuth");
+const jwt = require("jsonwebtoken");
+
+router.post("/login", async (req, res) => {
+  try {
+  const { username, password } = req.body;
+  const adminUser = {
+    username: process.env.ADMIN_USERNAME,
+    password: process.env.ADMIN_PASSWORD
+  };
+
+  if (username === adminUser.username && password === adminUser.password) {
+    const token = jwt.sign({ username, isAdmin: true }, process.env.SECRET_KEY, { expiresIn: "1h" });
+    res.json({ token });
+  } else {
+    res.status(401).json({ error: "Invalid credentials" });
+  }
+} catch (error) {
+  console.error(error);
+  res.status(500).json({ error: "Login failed" });
+};
+})
 
 router.get("/orders", adminAuth, async (req, res) => {
   try {

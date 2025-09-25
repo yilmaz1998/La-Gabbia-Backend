@@ -1,4 +1,5 @@
 require('dotenv').config();
+const jwt = require("jsonwebtoken");
 
 function adminAuth(req, res, next) {
     const authHeader = req.headers['authorization'];
@@ -7,14 +8,22 @@ function adminAuth(req, res, next) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const base64Credentials = authHeader.split(' ')[1];
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-    const [username, password] = credentials.split(':');
-
-    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-        next();
-    }else {
-        res.status(401).json({ error: 'Unauthorized' });
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
     }
-}
-module.exports = adminAuth;
+    try {
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    
+        if (decoded.isAdmin) {
+          req.user = decoded;
+          return next();
+        } else {
+          return res.status(403).json({ error: "Forbidden" });
+        }
+      } catch (err) {
+        return res.status(401).json({ error: "Invalid or expired token" });
+      }
+    }
+    
+    module.exports = adminAuth;
