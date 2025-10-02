@@ -32,7 +32,7 @@ router.get("/orders", adminAuth, async (req, res) => {
       const items = await knex("order_items")
         .join("menu_items", "order_items.menu_item_id", "menu_items.id")
         .where("order_items.order_id", order.id)
-        .select("menu_items.name", "order_items.quantity", "order_items.price");
+        .select("menu_items.name", "order_items.quantity", "order_items.price", "order_items.instruction");
 
       return { ...order, items };
     }));
