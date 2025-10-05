@@ -65,7 +65,12 @@ router.post("/", async (req, res) => {
         <p>We hope you enjoy your meal!</p>  `
     };
 
-    await transporter.sendMail(mail);
+    try {
+      await transporter.sendMail(mail);
+    } catch (emailError) {
+      console.error("Email sending failed:", emailError.message);
+    }
+    res.status(201).json(newOrder);
     res.status(201).json(newOrder);
   } catch (error) {
     console.error(error);
