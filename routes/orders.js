@@ -11,6 +11,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+module.exports = (io) => {
+
 const router = express.Router();
 
 router.post("/", async (req, res) => {
@@ -42,6 +44,18 @@ router.post("/", async (req, res) => {
 
     await knex("order_items").insert(orderItems);
 
+    const fullItems = await knex('order_items')
+    .join('menu_items', 'order_items.menu_item_id', 'menu_items.id')
+    .select(
+      'order_items.id',
+      'order_items.menu_item_id',
+      'order_items.quantity',
+      'order_items.price',
+      'order_items.instruction',
+      'menu_items.name'
+    )
+    .where('order_items.order_id', newOrder.id);
+
     const mail = {
       from: process.env.EMAIL_USER,
       to: customer_email,
@@ -61,7 +75,6 @@ router.post("/", async (req, res) => {
             </li>
           `).join("")}
         </ul>
-        <p>Status: ${newOrder.status}</p>
         <p>We hope you enjoy your meal!</p>  `
     };
 
@@ -70,12 +83,12 @@ router.post("/", async (req, res) => {
     } catch (emailError) {
       console.error("Email sending failed:", emailError.message);
     }
-    res.status(201).json(newOrder);
-    res.status(201).json(newOrder);
+    io.emit("new-order", {...newOrder, items: fullItems});
+    res.status(201).json({ ...newOrder, items: fullItems });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to create order" });
   }
 })
-
-module.exports = router;
+return router;
+}
