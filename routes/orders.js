@@ -1,5 +1,5 @@
 const express = require("express");
-const knex = require("../knex.js");
+const knex = require("../knex");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
